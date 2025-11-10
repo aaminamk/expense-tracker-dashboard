@@ -1,5 +1,5 @@
 # expense-tracker-dashboard
-# 💸 Expense Tracker — Smart Dashboard
+# 💸 Expense Tracker - Smart Dashboard
 
 A mini web-app that allows you to enter expenses in natural text:
 
