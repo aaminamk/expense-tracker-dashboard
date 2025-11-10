@@ -2,49 +2,57 @@
 
 import streamlit as st
 import pandas as pd
-from categorize.py import categorize_expense
+from categorize import categorize_expense  # ✅ Исправленный импорт
+
+st.set_page_config(page_title="Expense Tracker", page_icon="💸")
 
 st.title("💸 Expense Tracker Dashboard")
 
-# CSV file to store expenses
+
 FILE = "expenses.csv"
 
-# If file does not exist, create an empty one
+# Load or create CSV file
 try:
     df = pd.read_csv(FILE)
 except FileNotFoundError:
     df = pd.DataFrame(columns=["Expense", "Amount", "Category"])
     df.to_csv(FILE, index=False)
 
+
 # Input form
 with st.form("expense_form"):
-    expense_text = st.text_input("Enter expense (e.g., 'coffee 1200')")
-    submitted = st.form_submit_button("Add")
+    expense_text = st.text_input("Enter expense (example: `coffee 1200`):")
+    submitted = st.form_submit_button("Add expense")
 
     if submitted:
         try:
-            *expense, amount = expense_text.rsplit(" ", 1)
-            expense_name = " ".join(expense)
+            # Split into (text, amount)
+            *expense_words, amount = expense_text.split()
+            expense_name = " ".join(expense_words)
             amount = float(amount)
 
             category = categorize_expense(expense_name)
 
-            new_row = pd.DataFrame({"Expense": [expense_name], "Amount": [amount], "Category": [category]})
+            new_row = pd.DataFrame(
+                {"Expense": [expense_name], "Amount": [amount], "Category": [category]}
+            )
             df = pd.concat([df, new_row], ignore_index=True)
             df.to_csv(FILE, index=False)
 
-            st.success(f"Added: {expense_name} — {amount}₸ ({category})")
+            st.success(f"✅ Added: **{expense_name} — {amount}₸** ({category})")
 
-        except ValueError:
-            st.error("Format must be: name + space + amount (example: coffee 1200)")
+        except:
+            st.error("❌ Format must be: `name amount` (example: `coffee 1200`)")
 
+
+# Table
 st.subheader("📊 Expense Table")
 st.dataframe(df)
 
 if not df.empty:
     st.subheader("📈 Spending by Category")
-    chart = df.groupby("Category")["Amount"].sum()
-    st.bar_chart(chart)
+    category_chart = df.groupby("Category")["Amount"].sum()
+    st.bar_chart(category_chart)
 
-    st.subheader("💰 Total Spending")
+    st.subheader("💰 Total spending")
     st.write(f"**{df['Amount'].sum()} ₸**")
